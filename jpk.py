@@ -32,6 +32,7 @@ def _main():
     with codecs.open(in_fname, encoding='utf-8') as h:
         vars = read_variables(h.read())
     logger.info("vars: %s", vars)
+    validate_vars(vars)
     out_str = produce_output(vars)
     with codecs.open(out_fname, 'w', encoding='utf-8') as h:
         h.write(out_str)
@@ -55,9 +56,45 @@ def get_out_fname(in_fname):
     return base + ".csv"
 
 
+def validate_vars(vars):
+    check_vars_date(vars, 'data_od')
+    check_vars_date(vars, 'data_do')
+    check_vars_date(vars, 'data_wystawienia')
+    check_vars_date(vars, 'data_sprzedarzy')
+    check_vars_nip(vars, 'nip')
+    check_vars_nip(vars, 'nr_kontrahenta')
+    check_vars_int(vars, 'k_19')
+    check_vars_int(vars, 'k_20')
+    check_vars_int(vars, 'podatek_nalezny')
+    
+
+def check_vars_date(vars, key):
+    if key not in vars:
+        return
+    m = re.match(r'\d{4}-\d{2}-\d{2}', vars[key])
+    if m is None:
+        raise ValueError(u'Pole {} powinno być w formacie YYYY-MM-DD (np 2018-01-23)'.format(key))
+
+
+def check_vars_nip(vars, key):
+    if key not in vars:
+        return
+    m = re.match(r'\d{10}', vars[key])
+    if m is None:
+        raise ValueError(u'Pole {} powinno zawierać NIP (10 cyfr)'.format(key))
+
+
+def check_vars_int(vars, key):
+    if key not in vars:
+        return
+    m = re.match(r'\d+', vars[key])
+    if m is None:
+        raise ValueError(u'Pole {} powinno zawierać liczbę (bez kropek i przecinków)'.format(key))
+
+
 def read_variables(str_):
     d = {}
-    for k, v in re.findall(ur'(:\S+:)\s*(.*)?$', str_, re.MULTILINE):
+    for k, v in re.findall(ur':(\S+):\s*(.*)?$', str_, re.MULTILINE):
         d[k] = v.strip()
     return d
 
@@ -65,7 +102,7 @@ def read_variables(str_):
 def produce_output(vars):
     tpl = OUTPUT_TPL.strip()
     for k in vars:
-        tpl = tpl.replace(k, vars[k])
+        tpl = tpl.replace(':{}:'.format(k), vars[k])
     return tpl
 
 
