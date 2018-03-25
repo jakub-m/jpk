@@ -13,7 +13,7 @@ logging.basicConfig(format=FORMAT, filename='diagnostyka.txt', filemode='w', lev
 logger = logging.getLogger(__name__)
 
 
-OUTPUT_TPL='''
+OUTPUT_TPL=u'''
 KodFormularza;kodSystemowy;wersjaSchemy;WariantFormularza;CelZlozenia;DataWytworzeniaJPK;DataOd;DataDo;NazwaSystemu;NIP;PelnaNazwa;Email;LpSprzedazy;NrKontrahenta;NazwaKontrahenta;AdresKontrahenta;DowodSprzedazy;DataWystawienia;DataSprzedazy;K_10;K_11;K_12;K_13;K_14;K_15;K_16;K_17;K_18;K_19;K_20;K_21;K_22;K_23;K_24;K_25;K_26;K_27;K_28;K_29;K_30;K_31;K_32;K_33;K_34;K_35;K_36;K_37;K_38;K_39;LiczbaWierszySprzedazy;PodatekNalezny;LpZakupu;NrDostawcy;NazwaDostawcy;AdresDostawcy;DowodZakupu;DataZakupu;DataWplywu;K_43;K_44;K_45;K_46;K_47;K_48;K_49;K_50;LiczbaWierszyZakupow;PodatekNaliczony
 JPK_VAT;JPK_VAT (3);1-1;3;0;:data_wytworzenia_jpk:;:data_od:;:data_do:;nazwa programu ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;:nip:;:pelna_nazwa:;:email:;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -24,31 +24,31 @@ JPK_VAT;JPK_VAT (3);1-1;3;0;:data_wytworzenia_jpk:;:data_od:;:data_do:;nazwa pro
 
 def _main():
     in_fname = detect_input_file()
-    logger.info('input file name: %s', in_fname)
+    logger.info(u'input file name: %s', in_fname)
     out_fname = get_out_fname(in_fname)
-    logger.info('out_fname: %s', out_fname)
+    logger.info(u'out_fname: %s', out_fname)
     if os.path.exists(out_fname):
-        raise ValueError("Plik {} już istnieje, usuń go i spróbuj jeszcze raz.".format(out_fname))
+        raise ValueError(u"Plik {} już istnieje, usuń go i spróbuj jeszcze raz.".format(out_fname))
     with codecs.open(in_fname, encoding='utf-8') as h:
         vars = read_variables(h.read())
-    logger.info("vars: %s", vars)
+    logger.info(u"vars: %s", vars)
     validate_vars(vars)
     out_str = produce_output(vars)
     with codecs.open(out_fname, 'w', encoding='utf-8') as h:
         h.write(out_str)
-    logger.info('done!')
-    print('Zrobione! Plik wynikowy to {}'.format(out_fname))
+    logger.info(u'done!')
+    print(u'Zrobione! Plik wynikowy to {}'.format(out_fname))
 
 
 def detect_input_file():
     dir_ = os.getcwd()
-    logger.info("detect_input_file: %s", dir_)
+    logger.info(u"detect_input_file: %s", dir_)
     files = os.listdir(dir_)
-    logger.info("detect_input_file: %s", files)
+    logger.info(u"detect_input_file: %s", files)
     candidates = [f for f in files if f.startswith("JPK_VAT") and f.endswith(".txt")]
     if len(candidates) == 1:
         return candidates[0]
-    raise ValueError("Potrzebuję dokładnie jednego pliku zaczynającego się na JPK_VAT, z rozszeżeniem .txt")
+    raise ValueError(u"Potrzebuję dokładnie jednego pliku zaczynającego się na JPK_VAT, z rozszerzeniem .txt")
 
 
 def get_out_fname(in_fname):
@@ -66,12 +66,12 @@ def validate_vars(vars):
     check_vars_int(vars, 'k_19')
     check_vars_int(vars, 'k_20')
     check_vars_int(vars, 'podatek_nalezny')
-    
+
 
 def check_vars_date(vars, key):
     if key not in vars:
         return
-    m = re.match(r'\d{4}-\d{2}-\d{2}', vars[key])
+    m = re.match(ur'\d{4}-\d{2}-\d{2}$', vars[key])
     if m is None:
         raise ValueError(u'Pole {} powinno być w formacie YYYY-MM-DD (np 2018-01-23)'.format(key))
 
@@ -79,7 +79,7 @@ def check_vars_date(vars, key):
 def check_vars_nip(vars, key):
     if key not in vars:
         return
-    m = re.match(r'\d{10}', vars[key])
+    m = re.match(ur'\d{10}$', vars[key])
     if m is None:
         raise ValueError(u'Pole {} powinno zawierać NIP (10 cyfr)'.format(key))
 
@@ -87,7 +87,7 @@ def check_vars_nip(vars, key):
 def check_vars_int(vars, key):
     if key not in vars:
         return
-    m = re.match(r'\d+', vars[key])
+    m = re.match(r'\d+$', vars[key])
     if m is None:
         raise ValueError(u'Pole {} powinno zawierać liczbę (bez kropek i przecinków)'.format(key))
 
@@ -110,13 +110,8 @@ def main():
     try:
         _main()
     except Exception as e:
-        logger.exception("Something went wrong")
-        print("Błąd! " + e.message)
+        logger.exception(u"Something went wrong")
+        print(u"Błąd! " + e.message)
         sys.exit(1)
 
 main()
-
-
-# TODO data wytworzenia jpk
-# TODO walidacja formatow
-# TODO brakujace pola
