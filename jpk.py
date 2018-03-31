@@ -138,5 +138,6 @@ def main():
         logger.exception(u"Something went wrong")
         print(u"Błąd! " + e.message)
         sys.exit(1)
+    raw_input("Wciśnij ENTER żeby zakonczyć")
 
 main()
