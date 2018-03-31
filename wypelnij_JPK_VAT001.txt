@@ -1,0 +1,15 @@
+:data_wytworzenia_jpk: 2018-02-02T09:30:47
+:data_od: 2018-01-01
+:data_do: 2018-01-31
+:nip: 0123456789
+:pelna_nazwa: Bababab
+:email: ba@ba.com
+:nr_kontrahenta: 9876543210
+:nazwa_kontrahenta: Dododododododo
+:adres_kontrahenta: Dododododododo
+:dowod_sprzedarzy: 1/23234
+:data_wystawienia: 2018-01-20
+:data_sprzedarzy: 2018-01-20
+:k_19: 1234
+:k_20: 123
+:podatek_nalezny: 123
