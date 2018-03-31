@@ -22,6 +22,9 @@ JPK_VAT;JPK_VAT (3);1-1;3;0;:data_wytworzenia_jpk:;:data_od:;:data_do:;nazwa pro
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1;:podatek_nalezny:;;;;;;;;;;;;;;;;;;
 '''
 
+INPUT_FILE_PREFIX = "wypelnij_JPK_VAT"
+OUTPUT_FILE_PREFIX = "JPK_VAT"
+
 def _main():
     in_fname = detect_input_file()
     logger.info(u'input file name: %s', in_fname)
@@ -45,18 +48,36 @@ def detect_input_file():
     logger.info(u"detect_input_file: %s", dir_)
     files = os.listdir(dir_)
     logger.info(u"detect_input_file: %s", files)
-    candidates = [f for f in files if f.startswith("JPK_VAT") and f.endswith(".txt")]
+    candidates = [f for f in files if f.startswith(INPUT_FILE_PREFIX) and f.endswith(".txt")]
     if len(candidates) == 1:
         return candidates[0]
-    raise ValueError(u"Potrzebuję dokładnie jednego pliku zaczynającego się na JPK_VAT, z rozszerzeniem .txt")
+    raise ValueError(u"Potrzebuję dokładnie jednego pliku zaczynającego się na {}, z rozszerzeniem .txt".format(INPUT_FILE_PREFIX))
 
 
 def get_out_fname(in_fname):
-    base, ext = os.path.splitext(in_fname)
-    return base + ".csv"
+    if not in_fname.startswith(INPUT_FILE_PREFIX):
+        raise ValueError("Bad input file name: ".format(in_fname))
+    base, ext = os.path.splitext(in_fname[len(INPUT_FILE_PREFIX):])
+    return u"{}{}.csv".format(OUTPUT_FILE_PREFIX, base)
 
 
 def validate_vars(vars):
+    check_vars_types(vars)
+    check_vars_match_template(vars)
+
+
+def check_vars_match_template(vars):
+    template_keys = read_variable_keys(OUTPUT_TPL)
+    vars_keys = set(vars.keys())
+    unknown_keys_in_template = template_keys - vars_keys
+    if unknown_keys_in_template:
+        raise ValueError(u'Nie podałeś wartoście dla: {}'.format(u', '.join(sorted(unknown_keys_in_template))))
+    unknown_keys_in_input = vars_keys - template_keys
+    if unknown_keys_in_input:
+        raise ValueError(u'Nie wiem co to za pole wejściowe: {}'.format(u', '.join(sorted(unknown_keys_in_input))))
+
+
+def check_vars_types(vars):
     check_vars_date(vars, 'data_od')
     check_vars_date(vars, 'data_do')
     check_vars_date(vars, 'data_wystawienia')
@@ -97,6 +118,10 @@ def read_variables(str_):
     for k, v in re.findall(ur':(\S+):\s*(.*)?$', str_, re.MULTILINE):
         d[k] = v.strip()
     return d
+
+
+def read_variable_keys(str_):
+    return set(k.strip() for k in re.findall(ur':([^\s:;]+):', str_, re.MULTILINE))
 
 
 def produce_output(vars):
