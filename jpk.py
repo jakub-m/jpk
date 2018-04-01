@@ -25,6 +25,19 @@ JPK_VAT;JPK_VAT (3);1-1;3;0;:data_wytworzenia_jpk:;:data_od:;:data_do:;nazwa pro
 INPUT_FILE_PREFIX = "wypelnij_JPK_VAT"
 OUTPUT_FILE_PREFIX = "JPK_VAT"
 
+
+def wait_for_enter(message=None):
+    if sys.platform == "win32":
+        if message is None:
+            message = u"Wciśnij dowolny klawisz"
+        print(message)
+        os.system("pause")
+    else:
+        if message is None:
+            message = u"Wciśnij ENTER"
+        raw_input(message)
+
+
 def _main():
     in_fname = detect_input_file()
     logger.info(u'input file name: %s', in_fname)
@@ -33,7 +46,9 @@ def _main():
     if os.path.exists(out_fname):
         raise ValueError(u"Plik {} już istnieje, usuń go i spróbuj jeszcze raz.".format(out_fname))
     with codecs.open(in_fname, encoding='utf-8') as h:
-        vars = read_variables(h.read())
+        content = h.read()
+        logger.info(u'input file content:\n{}'.format(content))
+        vars = read_variables(content)
     logger.info(u"vars: %s", vars)
     validate_vars(vars)
     out_str = produce_output(vars)
@@ -115,7 +130,7 @@ def check_vars_int(vars, key):
 
 def read_variables(str_):
     d = {}
-    for k, v in re.findall(ur':(\S+):\s*(.*)?$', str_, re.MULTILINE):
+    for k, v in re.findall(ur':(\S+):\s*(.*)$', str_, re.MULTILINE):
         d[k] = v.strip()
     return d
 
@@ -137,7 +152,8 @@ def main():
     except Exception as e:
         logger.exception(u"Something went wrong")
         print(u"Błąd! " + e.message)
+        wait_for_enter()
         sys.exit(1)
-    raw_input("Wciśnij ENTER żeby zakonczyć")
+    wait_for_enter()
 
 main()
